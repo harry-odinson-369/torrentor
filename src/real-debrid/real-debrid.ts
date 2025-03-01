@@ -17,27 +17,37 @@ function BASE_URL(endpoint: string) {
 }
 
 export async function AddMagnetUri(magnetUri: string): Promise<ResponseUploaded> {
-    const targetUrl = BASE_URL(`/torrents/addMagnet`);
+    try {
+        const targetUrl = BASE_URL(`/torrents/addMagnet`);
 
-    const response = await axios.post(targetUrl, `magnet=${encodeURIComponent(magnetUri)}`, {
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-    });
+        const response = await axios.post(targetUrl, `magnet=${encodeURIComponent(magnetUri)}`, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        });
 
-    if (response.status === 201) return response.data as ResponseUploaded;
+        if (response.status === 201) return response.data as ResponseUploaded;
 
-    return {} as ResponseUploaded;
+        return {} as ResponseUploaded;
+    } catch (e) {
+        console.error(e);
+        return {} as ResponseUploaded;
+    }
 }
 
 export async function FileStatus(id: string): Promise<TorrentStatusInfo> {
-    const target = BASE_URL(`/torrents/info/${id}`);
+    try {
+        const target = BASE_URL(`/torrents/info/${id}`);
 
-    const response = await axios.get(target);
+        const response = await axios.get(target);
 
-    if (response.status === 200) return response.data as TorrentStatusInfo;
+        if (response.status === 200) return response.data as TorrentStatusInfo;
 
-    return {} as TorrentStatusInfo;
+        return {} as TorrentStatusInfo;
+    } catch (e) {
+        console.error(e);
+        return {} as TorrentStatusInfo;
+    }
 }
 
 export function GetActualFile(info: TorrentStatusInfo): FilePath {
@@ -54,44 +64,75 @@ export function GetActualFile(info: TorrentStatusInfo): FilePath {
 }
 
 export async function SelectFiles(id: string, files: Array<FilePath>) {
-    const target = BASE_URL(`/torrents/selectFiles/${id}`);
+    try {
+        const target = BASE_URL(`/torrents/selectFiles/${id}`);
 
-    await axios.post(target, `files=${files.map(e => e.id).join(",")}`, {
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-    });
+        await axios.post(target, `files=${files.map(e => e.id).join(",")}`, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        });
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 export async function UnrestrictLink(link: string): Promise<DownloadInfo> {
-    const target = BASE_URL(`/unrestrict/link`);
+    try {
+        const target = BASE_URL(`/unrestrict/link`);
 
-    const response = await axios.post(target, `link=${encodeURIComponent(link)}`, {
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-    });
+        const response = await axios.post(target, `link=${encodeURIComponent(link)}`, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        });
 
-    if (response.status === 200) return response.data as DownloadInfo;
+        if (response.status === 200) return response.data as DownloadInfo;
 
-    return {} as DownloadInfo;
+        return {} as DownloadInfo;
+    } catch (e) {
+        console.error(e);
+        return {} as DownloadInfo;
+    }
 
 }
 
 export async function GetStreamLinks(id: string): Promise<StreamLinks> {
-    const target = BASE_URL(`/streaming/transcode/${id}`);
 
-    const response = await axios.get(target);
+    try {
+        const target = BASE_URL(`/streaming/transcode/${id}`);
 
-    if (response.status === 200) return response.data as StreamLinks;
+        const response = await axios.get(target);
 
-    return {} as StreamLinks;
+        if (response.status === 200) return response.data as StreamLinks;
+
+        return {} as StreamLinks;
+    } catch (e) {
+        console.error(e);
+        return {} as StreamLinks;
+    }
+
+
+}
+
+export async function GetDownloads(): Promise<Array<DownloadInfo>> {
+    try {
+        const target = BASE_URL(`/downloads?limit=5000`);
+
+        const response = await axios.get(target);
+
+        if (response.status === 200) return response.data as Array<DownloadInfo>;
+
+        return [];
+    } catch (e) {
+        console.error(e);
+        return [];
+    }
 }
 
 export type OnStatusUpdateChanged = (info: TorrentStatusInfo) => void
 
-export async function Upload(torrent: Torrent, onStatusUpdateChanged?: OnStatusUpdateChanged): Promise<DownloadInfo> {
-    const magnet = ToMagnetUri(torrent);
+export async function UploadUri(magnet: string, onStatusUpdateChanged?: OnStatusUpdateChanged) {
     const resp = await AddMagnetUri(magnet);
 
     if (resp.id) {
@@ -120,4 +161,9 @@ export async function Upload(torrent: Torrent, onStatusUpdateChanged?: OnStatusU
     }
 
     return {} as DownloadInfo;
+}
+
+export async function Upload(torrent: Torrent, onStatusUpdateChanged?: OnStatusUpdateChanged): Promise<DownloadInfo> {
+    const magnet = ToMagnetUri(torrent);
+    return await UploadUri(magnet, onStatusUpdateChanged);
 }

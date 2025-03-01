@@ -79,8 +79,8 @@ export function MerlMovieResponse(info: FirebaseTorrentInfo) {
 
     for (let deb of info["real-debrid"] || []) {
         qualities.push({
-            name: `${formatBytes(deb.download.filesize || 0)} ${deb.download.filename}`,
-            link: (deb.download.download || ""),
+            name: `${formatBytes(deb.download?.filesize || 0)} ${deb.download?.filename}`,
+            link: deb.streams?.apple?.full ? ((deb.streams.apple.full || deb.download?.download) || "") : (deb.download?.download || ""),
         });
     }
 

@@ -4,10 +4,11 @@ export type FirebaseTorrentInfo = Partial<{
     "real-debrid": Array<FirebaseRealDebridItem>
 }>
 
-export type FirebaseRealDebridItem = {
+export type FirebaseRealDebridItem = Partial<{
     info: TorrentStatusInfo,
     download: DownloadInfo,
-}
+    streams: StreamLinks
+}>;
 
 export type FirebaseConfig = {
     apiKey: string;

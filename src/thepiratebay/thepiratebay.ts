@@ -22,31 +22,41 @@ type Options = {
 }
 
 export async function TorrentSearch(query: string, options?: Options): Promise<Array<Torrent>> {
-    const keyword = query.substring(0, limit(query.length, 60));
+    try {
+        const keyword = query.substring(0, limit(query.length, 60));
 
-    const category = options?.category || CATEGORIES.VIDEO;
+        const category = options?.category || CATEGORIES.VIDEO;
 
-    const targetUrl = BASE_URL(`/q.php?q=${keyword}&cat=${category}`);
+        const targetUrl = BASE_URL(`/q.php?q=${keyword}&cat=${category}`);
 
-    const response = await axios.get(targetUrl, { timeout: DEFAULT_TIMEOUT });
+        const response = await axios.get(targetUrl, { timeout: DEFAULT_TIMEOUT });
 
-    if (response.status === 200) {
-        let arr = response.data as Array<Torrent>;
-        if (options?.filter) {
-            arr = arr.filter(options.filter);
+        if (response.status === 200) {
+            let arr = response.data as Array<Torrent>;
+            if (options?.filter) {
+                arr = arr.filter(options.filter);
+            }
+            return arr.slice(0, limit(arr.length, options?.limit || 10));
         }
-        return arr.slice(0, limit(arr.length, options?.limit || 10));
-    }
 
-    return [];
+        return [];
+    } catch (e) {
+        console.error(e);
+        return [];
+    }
 }
 
 export async function TorrentFiles(torrent: Torrent): Promise<Array<TorrentFile>> {
-    const targetUrl = BASE_URL(`/f.php?id=${torrent.id}`);
-    
-    const response = await axios.get(targetUrl, { timeout: DEFAULT_TIMEOUT });
+    try {
+        const targetUrl = BASE_URL(`/f.php?id=${torrent.id}`);
 
-    if (response.status === 200) return response.data as Array<TorrentFile>;
+        const response = await axios.get(targetUrl, { timeout: DEFAULT_TIMEOUT });
 
-    return [];
+        if (response.status === 200) return response.data as Array<TorrentFile>;
+
+        return [];
+    } catch (e) {
+        console.error(e);
+        return [];
+    }
 }

@@ -1,6 +1,6 @@
 import express from "express";
 import { TorrentSearch } from "../thepiratebay/thepiratebay";
-import { Upload } from "../real-debrid/real-debrid";
+import { GetDownloads, GetStreamLinks, Upload } from "../real-debrid/real-debrid";
 
 import { initializeApp } from "firebase/app";
 import { collection, doc, getDoc, getFirestore, setDoc } from "firebase/firestore";
@@ -20,17 +20,26 @@ const router = express.Router();
 async function upload(tor: Torrent) {
     let info = {};
     let download = {};
+    let streams = {};
 
-    let resp = await Upload(tor, (event) => {
+    let res = await Upload(tor, (event) => {
         info = event;
     });
 
-    if (resp.id) {
-        download = resp;
+    const results = await GetDownloads();
+    const re = results.filter(e => `${e.filename}${e.filesize}${e.chunks}${e.mimeType}${e.streamable}` === `${res.filename}${res.filesize}${res.chunks}${res.mimeType}${res.streamable}`);
+
+    if (re.length) {
+        streams = await GetStreamLinks(re[0].id || "");
+    }
+
+    if (res.id) {
+        download = res;
     }
 
     let torrented = {
         info,
+        streams,
         download,
     };
 
