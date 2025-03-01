@@ -1,0 +1,10 @@
+{
+    "embed_url": "http://176.123.1.18:8080/stream/movie/{i}",
+    "tv_embed_url": "http://176.123.1.18:8080/stream/shows/{i}",
+    "stream_type": "api",
+    "use_imdb": true,
+    "name": "Real-Debrid",
+    "official_website": "https://real-debrid.com",
+    "image": "https://i.imgur.com/5zdPRfR.png",
+    "logo_background_color": "#0a0b2a"
+  }
