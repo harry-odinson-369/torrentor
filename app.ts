@@ -1,6 +1,5 @@
 import express from "express";
 import stream from "./src/routers/stream";
-import { AddMagnetUri } from "./src/real-debrid/real-debrid";
 
 const PORT = process.env.PORT || 8080;
 

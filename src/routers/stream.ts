@@ -7,7 +7,7 @@ import { collection, doc, getDoc, getFirestore, setDoc } from "firebase/firestor
 import { FIREBASE_CONFIG } from "../utilities/config";
 import { FirebaseTorrentInfo } from "../models/firebase";
 import { Torrent } from "../models/torrent";
-import { MerlMovieResponse } from "../utilities/helper";
+import { MerlMovieResponse, limit } from "../utilities/helper";
 
 const firebaseApp = initializeApp(FIREBASE_CONFIG);
 
@@ -37,9 +37,28 @@ async function upload(tor: Torrent) {
     return torrented;
 }
 
-router.get("/stream/:id", async (req, res) => {
+router.get("/stream/:type/:id", async (req, res) => {
     const mediaId = req.params.id;
     const isRefresh = req.query.refresh === "yes";
+    const type = req.params.type;
+
+    if (type !== 'movie') {
+        res.status(404).json({
+            status: 404,
+            message: "There no available route for " + type + " - " + mediaId,
+        });
+
+        return;
+    }
+
+    if (!mediaId.startsWith("tt")) {
+        res.status(404).json({
+            status: 404,
+            message: "The id must be started with tt as prefix",
+        });
+
+        return;
+    }
 
     const docRef = doc(colRef, mediaId);
 
@@ -78,10 +97,29 @@ router.get("/stream/:id", async (req, res) => {
 
 });
 
-router.get("/stream/:id/:s/:e", async (req, res) => {
+router.get("/stream/:type/:id/:s/:e", async (req, res) => {
     const mediaId = req.params.id;
     let season = req.params.s;
     let episode = req.params.e;
+    const type = req.params.type;
+
+    if (type !== 'shows') {
+        res.status(404).json({
+            status: 404,
+            message: "There no available route for " + type + " with - " + mediaId + " - " + req.params.s + " - " + req.params.e,
+        });
+
+        return;
+    }
+
+    if (!mediaId.startsWith("tt")) {
+        res.status(404).json({
+            status: 404,
+            message: "The id must be started with tt as prefix",
+        });
+
+        return;
+    }
 
     const isRefresh = req.query.refresh === "yes";
 
@@ -145,6 +183,9 @@ router.get("/stream/:id/:s/:e", async (req, res) => {
                 message: "There is no data for " + mediaId + " - " + req.params.s + " - " + req.params.e,
             });
         } else {
+
+            arr = arr.slice(0, limit(arr.length, 10));
+
             const torrented = await upload(arr[0]);
 
             debrid = {
